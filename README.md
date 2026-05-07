@@ -1,67 +1,83 @@
-# SpacetimeDB TypeScript Quickstart Chat
+# Compound Memory (v1 — SpacetimeDB foundation)
 
-This is a simple chat application that demonstrates how to use SpacetimeDB with TypeScript and React. The chat application is a simple chat room where users can send messages to each other. The chat application uses SpacetimeDB to store the chat messages.
+Multi-agent graph memory backed by SpacetimeDB. v1 is a local, single-agent
+graph memory: atomic notes, named entities, many-to-many links, reactive UI.
 
-It is based directly on the plain React + TypeScript + Vite template. You can follow the quickstart guide for how creating this project from scratch at [SpacetimeDB TypeScript Quickstart](https://spacetimedb.com/docs/sdks/typescript/quickstart).
+- **v2** (Plan 2) adds an MCP server so any AI agent (Claude Code, Cursor, custom)
+  can `remember` / `recall` via MCP tools, with LLM-driven entity extraction.
+- **v3** (Plan 3) wraps everything as `npx <package> init` for one-command install
+  into any project folder.
+- **v4+** adds bi-temporal relations, multi-agent ACLs, PageRank retrieval.
 
-You can follow the instructions for creating your own SpacetimeDB module here: [SpacetimeDB Rust Module Quickstart](https://spacetimedb.com/docs/modules/rust/quickstart). Place the module in the `quickstart-chat/server` directory for compability with this project.
+See `docs/superpowers/plans/` for the multi-plan roadmap.
 
-In order to run this example, you need to:
+## Local quickstart
 
-- `pnpm build` in the root directory (`spacetimedb-typescriptsdk`)
-- `pnpm install` in this directory
-- `pnpm build` in this directory
-- `pnpm dev` in this directory to run the example
+Prereqs: Node 20+, [`spacetime` CLI](https://spacetimedb.com/install) installed.
 
-Below is copied from the original template README:
+```bash
+# 1. Start SpacetimeDB locally (leave running in its own terminal)
+spacetime start
 
-# React + TypeScript + Vite
+# 2. From this directory, install deps
+npm install
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 3. Publish the module to local + generate bindings
+spacetime publish compound-memory-dev --module-path spacetimedb --server local --clear-database -y
+spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
+# 4. Run the dev UI
+npm run dev
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+The UI lets you:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react';
+- Add memories with optional comma-separated entity tags
+- Edit / delete your own memories
+- Add or remove tags on existing memories
+- Filter memories by entity (sidebar)
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-});
+## Tests
+
+```bash
+npm test
 ```
+
+Runs:
+
+- Unit tests for `parseTags`
+- An end-to-end integration test against the local SpacetimeDB (requires
+  `spacetime start` running and the module published as above)
+
+## What's in v1
+
+**Tables:** `agent`, `memory_note`, `entity`, `note_entity`
+
+**Reducers:** `set_agent_name`, `add_memory`, `add_memory_with_entities`,
+`update_memory`, `delete_memory`, `tag_memory`, `untag_memory`
+
+All reducers are deterministic — no LLM/embedding calls. Those arrive in Plan 2.
+
+## Multi-agent today
+
+Multiple browser tabs / clients can connect to the same SpacetimeDB module
+simultaneously and share memories in real time (each agent sees the other's
+inserts via subscriptions). Per-agent ACLs and bi-temporal relations come in
+Plan 4.
+
+## Production deploy
+
+The `spacetime.json` points at a maincloud database (`my-spacetime-app-b9ogh`).
+To deploy this v1 module there:
+
+```bash
+spacetime publish my-spacetime-app-b9ogh --module-path spacetimedb --server maincloud --clear-database -y
+```
+
+(Be aware: this destroys whatever's currently in the maincloud DB.)
+
+---
+
+# Original quickstart README (chat starter, archived)
+
+This project was scaffolded from the [SpacetimeDB TypeScript Quickstart Chat](https://spacetimedb.com/docs/sdks/typescript/quickstart) example. The chat UI has been replaced with the memory UI; the SpacetimeDB tooling and project layout remain.
