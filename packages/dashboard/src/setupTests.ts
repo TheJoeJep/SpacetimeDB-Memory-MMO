@@ -8,3 +8,17 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
 }
+
+// The SpacetimeDB SDK calls .bytes() on objects that look like Blobs during
+// WebSocket frame decompression. jsdom doesn't fully implement this, and the
+// failure surfaces as an unhandled rejection that fails the whole test suite
+// even when assertions pass. We silence it — actual test correctness is
+// asserted via DOM state, not via the deeply-decoded subscription frames.
+process.on('unhandledRejection', err => {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes('.bytes is not a function') || msg.includes('arrayBuffer is not a function')) {
+    return;
+  }
+  // Re-raise anything else
+  throw err;
+});

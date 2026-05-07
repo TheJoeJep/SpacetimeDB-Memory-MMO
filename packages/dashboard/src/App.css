@@ -1027,3 +1027,214 @@
   color: var(--star-ghost);
   font-size: 0.6rem;
 }
+
+/* ===== Search palette (Cmd+K) ===== */
+.search-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  background: rgba(5, 8, 16, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: backdrop-in 0.15s ease-out;
+}
+
+.search-palette {
+  width: min(620px, calc(100% - 3rem));
+  background: linear-gradient(
+    180deg,
+    rgba(28, 34, 68, 0.96) 0%,
+    rgba(19, 24, 48, 0.96) 100%
+  );
+  border: 1px solid rgba(77, 208, 255, 0.25);
+  border-radius: 14px;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(77, 208, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  animation: modal-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid rgba(140, 160, 220, 0.1);
+}
+
+.search-prefix {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--cyan-glow);
+  user-select: none;
+}
+
+.search-row input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--star-fg);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  outline: none;
+  padding: 0;
+}
+
+.search-row input::placeholder { color: var(--star-ghost); }
+
+.search-shortcut {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--star-ghost);
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(140, 160, 220, 0.15);
+  border-radius: 4px;
+}
+
+.search-results {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.search-empty {
+  padding: 0.7rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--star-ghost);
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.search-item:hover {
+  background: rgba(77, 208, 255, 0.06);
+}
+
+.search-kind-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.search-item.memory .search-kind-tag {
+  border: 1px solid var(--cyan-glow);
+  color: var(--cyan-bright);
+}
+
+.search-item.entity .search-kind-tag {
+  border: 1px solid var(--magenta-glow);
+  color: var(--magenta-bright);
+}
+
+.search-snippet {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--star-fg);
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-match {
+  background: rgba(255, 200, 87, 0.18);
+  color: var(--amber-bright);
+  padding: 0 0.1rem;
+  border-radius: 2px;
+}
+
+.search-meta {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--star-ghost);
+  flex-shrink: 0;
+}
+
+.search-hint-row {
+  padding: 0.65rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--star-ghost);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.search-hint-row kbd {
+  background: rgba(140, 160, 220, 0.1);
+  border: 1px solid rgba(140, 160, 220, 0.2);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--star-fg);
+}
+
+/* ===== Bubble hover tooltip (react-force-graph injects this into the body) ===== */
+.graph-tooltip {
+  background: rgba(10, 14, 31, 0.96) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(77, 208, 255, 0.3) !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  font-family: var(--font-mono) !important;
+  color: var(--star-fg) !important;
+  max-width: 360px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(77, 208, 255, 0.08) !important;
+}
+
+.hover-tip {
+  padding: 0.7rem 0.85rem;
+}
+
+.hover-tip-content {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--star-fg);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.hover-tip-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--magenta-bright);
+  margin-bottom: 0.25rem;
+}
+
+.hover-tip-meta {
+  margin-top: 0.45rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--star-ghost);
+}

@@ -381,6 +381,14 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
           d3VelocityDecay={0.32}
           cooldownTicks={140}
           warmupTicks={60}
+          nodeLabel={(node) => {
+            const n = node as GraphNode;
+            if (n.kind === 'memory') {
+              const ts = n.createdAtMs ? new Date(n.createdAtMs).toLocaleString() : '';
+              return `<div class="hover-tip"><div class="hover-tip-content">${escapeHtml(n.content ?? '')}</div><div class="hover-tip-meta">#${n.rawId.toString()} · ${ts}</div></div>`;
+            }
+            return `<div class="hover-tip"><div class="hover-tip-title">${escapeHtml(n.label)}</div><div class="hover-tip-meta">${n.count ?? 0} memor${n.count === 1 ? 'y' : 'ies'}</div></div>`;
+          }}
           onNodeClick={(node) => onSelect(node as GraphNode)}
           onBackgroundClick={() => onSelect(null)}
           enableNodeDrag
@@ -432,6 +440,14 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     if (cur) out.push(cur);
   }
   return out;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function withAlpha(color: string, a: number): string {

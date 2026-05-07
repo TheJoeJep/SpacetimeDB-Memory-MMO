@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { useSpacetimeDB, useTable, useReducer } from 'spacetimedb/react';
 import { tables, reducers } from './module_bindings';
@@ -8,6 +8,7 @@ import { MemoryGraph } from './components/MemoryGraph';
 import type { GraphNode } from './components/MemoryGraph';
 import { DetailPanel } from './components/DetailPanel';
 import { AddMemoryBar } from './components/AddMemoryBar';
+import { SearchPalette } from './components/SearchPalette';
 import { SEED_MEMORIES } from './lib/seedMemories';
 
 function App() {
@@ -17,6 +18,27 @@ function App() {
   const addMemoryWithEntities = useReducer(reducers.addMemoryWithEntities);
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Cmd/Ctrl+K opens the search palette; '/' too
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const inField = !!target && /^(input|textarea)$/i.test(target.tagName);
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+      if (e.key === '/' && !inField && !searchOpen) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [searchOpen]);
 
   const noteCount = notes.length;
   const entityCount = entities.length;
@@ -78,6 +100,14 @@ function App() {
       </div>
 
       <DetailPanel node={selected} onClose={() => setSelected(null)} onSelectNode={setSelected} />
+
+      <SearchPalette
+        open={searchOpen}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        onClose={() => { setSearchOpen(false); setSearchQuery(''); }}
+        onSelect={(node) => setSelected(node)}
+      />
     </div>
   );
 }

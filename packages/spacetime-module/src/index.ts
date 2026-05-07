@@ -106,10 +106,24 @@ export const delete_memory = spacetimedb.reducer(
     if (!existing.addedBy.isEqual(ctx.sender)) {
       throw new SenderError("Cannot delete another agent's memory");
     }
+    // Collect entity ids from this note's links so we can check for orphans after.
+    const touchedEntityIds = new Set<bigint>();
     for (const link of [...ctx.db.noteEntity.noteId.filter(noteId)]) {
+      touchedEntityIds.add(link.entityId);
       ctx.db.noteEntity.id.delete(link.id);
     }
     ctx.db.memoryNote.id.delete(noteId);
+    // Also delete any access events for this note (best-effort cleanup).
+    for (const access of [...ctx.db.memoryAccess.noteId.filter(noteId)]) {
+      ctx.db.memoryAccess.id.delete(access.id);
+    }
+    // Drop entities that no longer have any linked notes (orphans).
+    for (const entityId of touchedEntityIds) {
+      const stillLinked = [...ctx.db.noteEntity.entityId.filter(entityId)].length > 0;
+      if (!stillLinked) {
+        ctx.db.entity.id.delete(entityId);
+      }
+    }
   }
 );
 
