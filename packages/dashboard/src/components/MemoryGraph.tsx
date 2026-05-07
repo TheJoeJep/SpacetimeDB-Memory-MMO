@@ -6,8 +6,9 @@ import { tables } from '../module_bindings';
 import { agentColorFromIdentity } from '../lib/agentColor';
 
 const ACCESS_PULSE_DURATION_MS = 3500;
+const SECTION_COLOR = '#f5f7ff'; // soft white — anchors, distinct from agent colors and entities
 
-export type GraphNodeKind = 'memory' | 'entity';
+export type GraphNodeKind = 'memory' | 'entity' | 'section';
 
 export interface GraphNode {
   id: string;
@@ -18,7 +19,7 @@ export interface GraphNode {
   authorHex?: string;
   authorColor?: string;
   createdAtMs?: number;
-  // entity-only
+  // entity / section
   count?: number;
   // shared
   rawId: bigint;
@@ -107,10 +108,13 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
 
     for (const e of entities) {
       const c = counts.get(e.id.toString()) ?? 0;
-      if (c === 0) continue; // skip orphans
+      const isSection = e.kind === 'section';
+      // sections are always visible (they're the organizing structure);
+      // regular entities are hidden when they have zero linked memories
+      if (!isSection && c === 0) continue;
       nodes.push({
         id: `e:${e.id.toString()}`,
-        kind: 'entity',
+        kind: isSection ? 'section' : 'entity',
         label: e.name,
         count: c,
         rawId: e.id,
@@ -207,6 +211,11 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
   }, [selectedId, data.links]);
 
   const nodeRadius = (n: GraphNode) => {
+    if (n.kind === 'section') {
+      // sections are large anchors — bigger than entities, scale slightly with use
+      const base = 38 + Math.sqrt(n.count ?? 0) * 3;
+      return Math.max(44, Math.min(58, base));
+    }
     if (n.kind === 'entity') {
       const base = 16 + Math.sqrt(n.count ?? 1) * 5;
       return Math.max(18, Math.min(40, base));
@@ -229,10 +238,12 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
     const access = accessPulses.current.get(n.id);
     const accessT = access ? Math.max(0, 1 - (Date.now() - access.ts) / ACCESS_PULSE_DURATION_MS) : 0;
 
-    // Color: memory uses author color (or default cyan), entity uses magenta
+    // Color: memory = author color, entity = magenta, section = soft white anchor
     const ringColor =
       n.kind === 'memory'
         ? n.authorColor ?? MEMORY_DEFAULT_COLOR
+        : n.kind === 'section'
+        ? SECTION_COLOR
         : ENTITY_COLOR;
 
     // Dim factor
@@ -306,11 +317,12 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
     }
 
     // Text inside bubble
-    const text = n.kind === 'entity' ? n.label : titleFromContent(n.content ?? '');
-    const fontSize = n.kind === 'entity' ? 8.5 : 7.5;
-    const lineHeight = fontSize + 1.5;
-    ctx.font = `${fontSize}px 'JetBrains Mono', monospace`;
-    const lines = wrapText(ctx, text, r * 1.7).slice(0, 3);
+    const text = n.kind === 'memory' ? titleFromContent(n.content ?? '') : n.label;
+    const fontSize = n.kind === 'section' ? 11 : n.kind === 'entity' ? 8.5 : 7.5;
+    const lineHeight = fontSize + (n.kind === 'section' ? 2.5 : 1.5);
+    const isSection = n.kind === 'section';
+    ctx.font = `${isSection ? '700 ' : ''}${fontSize}px ${isSection ? "'Unbounded'," : ''}'JetBrains Mono', monospace`;
+    const lines = wrapText(ctx, isSection ? text.toUpperCase() : text, r * 1.7).slice(0, 3);
     if (lines.length === 3) {
       // ellipsize the last
       const last = lines[2];
@@ -386,6 +398,9 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
             if (n.kind === 'memory') {
               const ts = n.createdAtMs ? new Date(n.createdAtMs).toLocaleString() : '';
               return `<div class="hover-tip"><div class="hover-tip-content">${escapeHtml(n.content ?? '')}</div><div class="hover-tip-meta">#${n.rawId.toString()} · ${ts}</div></div>`;
+            }
+            if (n.kind === 'section') {
+              return `<div class="hover-tip"><div class="hover-tip-title">${escapeHtml(n.label.toUpperCase())}</div><div class="hover-tip-meta">section · ${n.count ?? 0} memor${n.count === 1 ? 'y' : 'ies'}</div></div>`;
             }
             return `<div class="hover-tip"><div class="hover-tip-title">${escapeHtml(n.label)}</div><div class="hover-tip-meta">${n.count ?? 0} memor${n.count === 1 ? 'y' : 'ies'}</div></div>`;
           }}

@@ -38,6 +38,7 @@ import AddMemoryReducer from "./add_memory_reducer";
 import AddMemoryWithEntitiesReducer from "./add_memory_with_entities_reducer";
 import CacheEmbeddingReducer from "./cache_embedding_reducer";
 import DeleteMemoryReducer from "./delete_memory_reducer";
+import EnsureSectionReducer from "./ensure_section_reducer";
 import RecordMemoryAccessReducer from "./record_memory_access_reducer";
 import SetAgentNameReducer from "./set_agent_name_reducer";
 import SetEntityEmbeddingReducer from "./set_entity_embedding_reducer";
@@ -156,6 +157,7 @@ const reducersSchema = __reducers(
   __reducerSchema("add_memory_with_entities", AddMemoryWithEntitiesReducer),
   __reducerSchema("cache_embedding", CacheEmbeddingReducer),
   __reducerSchema("delete_memory", DeleteMemoryReducer),
+  __reducerSchema("ensure_section", EnsureSectionReducer),
   __reducerSchema("record_memory_access", RecordMemoryAccessReducer),
   __reducerSchema("set_agent_name", SetAgentNameReducer),
   __reducerSchema("set_entity_embedding", SetEntityEmbeddingReducer),

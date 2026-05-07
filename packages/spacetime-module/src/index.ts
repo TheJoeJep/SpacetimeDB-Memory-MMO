@@ -178,6 +178,28 @@ export const set_entity_embedding = spacetimedb.reducer(
   }
 );
 
+export const ensure_section = spacetimedb.reducer(
+  { name: t.string() },
+  (ctx, { name }) => {
+    const norm = name.trim().toLowerCase();
+    if (!norm) throw new SenderError('Section name required');
+    const existing = ctx.db.entity.name.find(norm);
+    if (existing) {
+      if (existing.kind !== 'section') {
+        ctx.db.entity.id.update({ ...existing, kind: 'section' });
+      }
+      return;
+    }
+    ctx.db.entity.insert({
+      id: 0n,
+      name: norm,
+      kind: 'section',
+      createdAt: ctx.timestamp,
+      embedding: undefined,
+    });
+  }
+);
+
 export const record_memory_access = spacetimedb.reducer(
   { noteIds: t.array(t.u64()), kind: t.string() },
   (ctx, { noteIds, kind }) => {

@@ -9,17 +9,21 @@ import type { GraphNode } from './components/MemoryGraph';
 import { DetailPanel } from './components/DetailPanel';
 import { AddMemoryBar } from './components/AddMemoryBar';
 import { SearchPalette } from './components/SearchPalette';
-import { SEED_MEMORIES } from './lib/seedMemories';
+import { DEFAULT_SECTIONS } from './lib/sections';
 
 function App() {
   const { isActive: connected, identity } = useSpacetimeDB();
   const [notes] = useTable(tables.memoryNote);
   const [entities] = useTable(tables.entity);
-  const addMemoryWithEntities = useReducer(reducers.addMemoryWithEntities);
+  const ensureSection = useReducer(reducers.ensureSection);
   const [selected, setSelected] = useState<GraphNode | null>(null);
-  const [seeding, setSeeding] = useState(false);
+  const [planting, setPlanting] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const noteCount = notes.length;
+  const entityCount = entities.length;
+  const sectionCount = entities.filter(e => e.kind === 'section').length;
 
   // Cmd/Ctrl+K opens the search palette; '/' too
   useEffect(() => {
@@ -40,22 +44,13 @@ function App() {
     return () => document.removeEventListener('keydown', onKey);
   }, [searchOpen]);
 
-  const noteCount = notes.length;
-  const entityCount = entities.length;
-  const myNoteCount = identity ? notes.filter(n => n.addedBy.isEqual(identity)).length : 0;
-
-  const onSeed = async () => {
-    setSeeding(true);
-    for (const m of SEED_MEMORIES) {
-      addMemoryWithEntities({
-        content: m.content,
-        entityNames: m.entities,
-        embedding: undefined,
-        clientToken: undefined,
-      });
-      await new Promise(r => setTimeout(r, 80));
+  const onPlantSections = async () => {
+    setPlanting(true);
+    for (const name of DEFAULT_SECTIONS) {
+      ensureSection({ name });
+      await new Promise(r => setTimeout(r, 60));
     }
-    setSeeding(false);
+    setPlanting(false);
   };
 
   if (!connected || !identity) {
@@ -76,27 +71,26 @@ function App() {
       <MemoryGraph onSelect={setSelected} selectedId={selected?.id ?? null} />
       <TopBar noteCount={noteCount} entityCount={entityCount} />
 
-      {myNoteCount === 0 && (
-        <div className="empty-cosmos">
-          <div className="empty-glyph">— {noteCount === 0 ? 'Empty cosmos' : 'Your first memory'} —</div>
-          <div className="empty-headline">
-            {noteCount === 0
-              ? 'Plant the first memories, or speak yours into existence below.'
-              : 'You haven’t added any memories yet. Plant the starter set, or write your own below.'}
-          </div>
-          <button className="seed-btn" onClick={onSeed} disabled={seeding}>
-            {seeding ? 'Planting…' : `Plant ${SEED_MEMORIES.length} starter memories`}
+      {/* Small corner toast — only shown until at least one section exists */}
+      {sectionCount === 0 && (
+        <div className="getstarted-toast">
+          <div className="getstarted-headline">Plant sections to organize</div>
+          <button
+            className="getstarted-btn"
+            onClick={onPlantSections}
+            disabled={planting}
+          >
+            {planting ? 'Planting…' : `+ ${DEFAULT_SECTIONS.length} sections`}
           </button>
-          <div className="empty-hint">↵ to save · comma-separate entity tags</div>
         </div>
       )}
 
       <AddMemoryBar />
 
       <div className="legend">
+        <div className="legend-row"><span className="legend-dot section" /> Section</div>
         <div className="legend-row"><span className="legend-dot memory" /> Memory</div>
         <div className="legend-row"><span className="legend-dot entity" /> Entity</div>
-        <div className="legend-row"><span className="legend-dot recent" /> Recently added</div>
       </div>
 
       <DetailPanel node={selected} onClose={() => setSelected(null)} onSelectNode={setSelected} />
