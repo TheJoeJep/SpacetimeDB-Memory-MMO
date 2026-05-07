@@ -8,7 +8,7 @@ interface Props {
 
 export function MemoryList({ filterEntityId = null }: Props = {}) {
   const { identity } = useSpacetimeDB();
-  const [notes, isLoading] = useTable(tables.memoryNote);
+  const [notes, isReady] = useTable(tables.memoryNote);
   const [entities] = useTable(tables.entity);
   const [links] = useTable(tables.noteEntity);
   const deleteMemory = useReducer(reducers.deleteMemory);
@@ -20,7 +20,7 @@ export function MemoryList({ filterEntityId = null }: Props = {}) {
   const [editDraft, setEditDraft] = useState('');
   const [tagDraft, setTagDraft] = useState<Record<string, string>>({});
 
-  if (isLoading) return <div className="memory-list">Loading…</div>;
+  if (!isReady) return <div className="memory-list">Loading…</div>;
   if (notes.length === 0) {
     return <div className="memory-list empty">No memories yet. Add one above.</div>;
   }

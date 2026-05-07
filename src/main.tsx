@@ -16,6 +16,7 @@ const onConnect = (conn: DbConnection, identity: Identity, token: string) => {
     'Connected to SpacetimeDB with identity:',
     identity.toHexString()
   );
+  conn.subscriptionBuilder().subscribeToAll();
 };
 
 const onDisconnect = () => {
