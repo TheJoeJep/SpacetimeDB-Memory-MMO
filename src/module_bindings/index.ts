@@ -34,12 +34,15 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AddMemoryReducer from "./add_memory_reducer";
+import DeleteMemoryReducer from "./delete_memory_reducer";
 import SetAgentNameReducer from "./set_agent_name_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
 import AgentRow from "./agent_table";
+import MemoryNoteRow from "./memory_note_table";
 
 /** Type-only namespace exports for generated type groups. */
 
@@ -56,10 +59,26 @@ const tablesSchema = __schema({
       { name: 'agent_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, AgentRow),
+  memoryNote: __table({
+    name: 'memory_note',
+    indexes: [
+      { accessor: 'addedBy', name: 'memory_note_added_by_idx_btree', algorithm: 'btree', columns: [
+        'addedBy',
+      ] },
+      { accessor: 'id', name: 'memory_note_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+    ],
+    constraints: [
+      { name: 'memory_note_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, MemoryNoteRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("add_memory", AddMemoryReducer),
+  __reducerSchema("delete_memory", DeleteMemoryReducer),
   __reducerSchema("set_agent_name", SetAgentNameReducer),
 );
 

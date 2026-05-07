@@ -17,3 +17,12 @@ export const Agent = __t.object("Agent", {
 });
 export type Agent = __Infer<typeof Agent>;
 
+export const MemoryNote = __t.object("MemoryNote", {
+  id: __t.u64(),
+  content: __t.string(),
+  addedBy: __t.identity(),
+  createdAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type MemoryNote = __Infer<typeof MemoryNote>;
+

@@ -6,7 +6,11 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AddMemoryReducer from "../add_memory_reducer";
+import DeleteMemoryReducer from "../delete_memory_reducer";
 import SetAgentNameReducer from "../set_agent_name_reducer";
 
+export type AddMemoryParams = __Infer<typeof AddMemoryReducer>;
+export type DeleteMemoryParams = __Infer<typeof DeleteMemoryReducer>;
 export type SetAgentNameParams = __Infer<typeof SetAgentNameReducer>;
 

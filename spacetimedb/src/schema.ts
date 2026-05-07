@@ -9,5 +9,22 @@ export const agent = table(
   }
 );
 
-const spacetimedb = schema({ agent });
+export const memoryNote = table(
+  {
+    name: 'memory_note',
+    public: true,
+    indexes: [
+      { accessor: 'addedBy', algorithm: 'btree', columns: ['addedBy'] },
+    ],
+  },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    content: t.string(),
+    addedBy: t.identity(),
+    createdAt: t.timestamp(),
+    updatedAt: t.timestamp(),
+  }
+);
+
+const spacetimedb = schema({ agent, memoryNote });
 export default spacetimedb;
