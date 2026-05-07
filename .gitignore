@@ -5,3 +5,8 @@ dist
 .DS_Store
 
 spacetime.local.json
+.env
+.env.local
+.vite/
+spacetimedb/dist/
+spacetimedb/node_modules/
