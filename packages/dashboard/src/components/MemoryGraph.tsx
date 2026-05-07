@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import { forceCollide, forceManyBody, forceLink } from 'd3-force';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables } from '../module_bindings';
 import { agentColorFromIdentity } from '../lib/agentColor';
@@ -138,6 +139,17 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
     return () => cancelAnimationFrame(raf);
   }, [data.nodes]);
 
+  // Configure forces: collision (no overlap), stronger repulsion, longer link distances.
+  useEffect(() => {
+    const fg = graphRef.current;
+    if (!fg) return;
+    fg.d3Force('collide', forceCollide<GraphNode>(n => nodeRadius(n) + 6).strength(1).iterations(3));
+    fg.d3Force('charge', forceManyBody().strength(-260).distanceMax(540));
+    const linkF = fg.d3Force('link');
+    if (linkF) (linkF as ReturnType<typeof forceLink>).distance(75).strength(0.6);
+    fg.d3ReheatSimulation();
+  }, [data.nodes.length, data.links.length]);
+
   // Auto fit + clamp zoom
   useEffect(() => {
     if (!graphRef.current) return;
@@ -152,7 +164,7 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
       } catch {
         /* not ready */
       }
-    }, 800);
+    }, 1100);
     return () => clearTimeout(t);
   }, [data.nodes.length]);
 

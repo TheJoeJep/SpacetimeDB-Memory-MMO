@@ -11,6 +11,8 @@
     "spacetime:generate": "spacetime generate --lang typescript --out-dir src/module_bindings --module-path ../spacetime-module"
   },
   "dependencies": {
+    "@types/d3-force": "^3.0.10",
+    "d3-force": "^3.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-force-graph-2d": "^1.29.1",

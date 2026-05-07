@@ -868,6 +868,32 @@
   letter-spacing: 0.05em;
 }
 
+.seed-btn {
+  pointer-events: auto;
+  margin-top: 0.5rem;
+  padding: 0.7rem 1.4rem;
+  background: linear-gradient(135deg, rgba(77, 208, 255, 0.18), rgba(255, 122, 217, 0.14));
+  border: 1px solid rgba(77, 208, 255, 0.4);
+  color: var(--cyan-bright);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.seed-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(77, 208, 255, 0.32), rgba(255, 122, 217, 0.22));
+  box-shadow: var(--shadow-glow-cyan);
+  transform: translateY(-1px);
+}
+
+.seed-btn:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
 /* ===== Legend (bottom-left) ===== */
 .legend {
   position: absolute;
