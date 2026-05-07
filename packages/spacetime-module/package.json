@@ -1,0 +1,17 @@
+{
+  "name": "spacetimedb-memory-mmo-module",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "publish:local": "spacetime publish compound-memory-dev --module-path . --server local --clear-database -y",
+    "generate:dashboard": "spacetime generate --lang typescript --out-dir ../dashboard/src/module_bindings --module-path .",
+    "generate:mcp": "spacetime generate --lang typescript --out-dir ../mcp-server/src/module_bindings --module-path ."
+  },
+  "dependencies": {
+    "spacetimedb": "^2.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

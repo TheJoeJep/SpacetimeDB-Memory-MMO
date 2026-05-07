@@ -4,5 +4,5 @@
   },
   "database": "my-spacetime-app-b9ogh",
   "server": "maincloud",
-  "module-path": "./spacetimedb"
+  "module-path": "./packages/spacetime-module"
 }
