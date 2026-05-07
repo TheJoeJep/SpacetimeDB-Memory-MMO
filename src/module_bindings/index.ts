@@ -35,6 +35,7 @@ import {
 
 // Import all reducer arg schemas
 import AddMemoryReducer from "./add_memory_reducer";
+import AddMemoryWithEntitiesReducer from "./add_memory_with_entities_reducer";
 import DeleteMemoryReducer from "./delete_memory_reducer";
 import SetAgentNameReducer from "./set_agent_name_reducer";
 
@@ -42,7 +43,9 @@ import SetAgentNameReducer from "./set_agent_name_reducer";
 
 // Import all table schema definitions
 import AgentRow from "./agent_table";
+import EntityRow from "./entity_table";
 import MemoryNoteRow from "./memory_note_table";
+import NoteEntityRow from "./note_entity_table";
 
 /** Type-only namespace exports for generated type groups. */
 
@@ -59,6 +62,21 @@ const tablesSchema = __schema({
       { name: 'agent_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, AgentRow),
+  entity: __table({
+    name: 'entity',
+    indexes: [
+      { accessor: 'id', name: 'entity_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'name', name: 'entity_name_idx_btree', algorithm: 'btree', columns: [
+        'name',
+      ] },
+    ],
+    constraints: [
+      { name: 'entity_id_key', constraint: 'unique', columns: ['id'] },
+      { name: 'entity_name_key', constraint: 'unique', columns: ['name'] },
+    ],
+  }, EntityRow),
   memoryNote: __table({
     name: 'memory_note',
     indexes: [
@@ -73,11 +91,29 @@ const tablesSchema = __schema({
       { name: 'memory_note_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, MemoryNoteRow),
+  noteEntity: __table({
+    name: 'note_entity',
+    indexes: [
+      { accessor: 'entityId', name: 'note_entity_entity_id_idx_btree', algorithm: 'btree', columns: [
+        'entityId',
+      ] },
+      { accessor: 'id', name: 'note_entity_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'noteId', name: 'note_entity_note_id_idx_btree', algorithm: 'btree', columns: [
+        'noteId',
+      ] },
+    ],
+    constraints: [
+      { name: 'note_entity_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, NoteEntityRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("add_memory", AddMemoryReducer),
+  __reducerSchema("add_memory_with_entities", AddMemoryWithEntitiesReducer),
   __reducerSchema("delete_memory", DeleteMemoryReducer),
   __reducerSchema("set_agent_name", SetAgentNameReducer),
 );

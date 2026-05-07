@@ -26,5 +26,31 @@ export const memoryNote = table(
   }
 );
 
-const spacetimedb = schema({ agent, memoryNote });
+export const entity = table(
+  { name: 'entity', public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    name: t.string().unique(),
+    kind: t.string().optional(),
+    createdAt: t.timestamp(),
+  }
+);
+
+export const noteEntity = table(
+  {
+    name: 'note_entity',
+    public: true,
+    indexes: [
+      { accessor: 'noteId', algorithm: 'btree', columns: ['noteId'] },
+      { accessor: 'entityId', algorithm: 'btree', columns: ['entityId'] },
+    ],
+  },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    noteId: t.u64(),
+    entityId: t.u64(),
+  }
+);
+
+const spacetimedb = schema({ agent, memoryNote, entity, noteEntity });
 export default spacetimedb;

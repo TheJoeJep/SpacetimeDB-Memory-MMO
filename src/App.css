@@ -55,3 +55,24 @@
 }
 
 .memory-list.empty { color: #999; padding: 1rem; }
+
+.memory-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.tag-chip {
+  background: #eef;
+  color: #225;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+.tag-chip.active {
+  background: #225;
+  color: #fff;
+}

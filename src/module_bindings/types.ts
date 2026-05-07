@@ -17,6 +17,14 @@ export const Agent = __t.object("Agent", {
 });
 export type Agent = __Infer<typeof Agent>;
 
+export const Entity = __t.object("Entity", {
+  id: __t.u64(),
+  name: __t.string(),
+  kind: __t.option(__t.string()),
+  createdAt: __t.timestamp(),
+});
+export type Entity = __Infer<typeof Entity>;
+
 export const MemoryNote = __t.object("MemoryNote", {
   id: __t.u64(),
   content: __t.string(),
@@ -25,4 +33,11 @@ export const MemoryNote = __t.object("MemoryNote", {
   updatedAt: __t.timestamp(),
 });
 export type MemoryNote = __Infer<typeof MemoryNote>;
+
+export const NoteEntity = __t.object("NoteEntity", {
+  id: __t.u64(),
+  noteId: __t.u64(),
+  entityId: __t.u64(),
+});
+export type NoteEntity = __Infer<typeof NoteEntity>;
 
