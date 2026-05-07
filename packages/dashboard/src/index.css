@@ -1,76 +1,81 @@
-/* ----- CSS Reset & Global Settings ----- */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+/* Reset to deep-space defaults */
+:root {
+  /* Palette */
+  --space-void: #050810;
+  --space-deep: #0a0e1f;
+  --space-near: #131830;
+  --space-rim: #1c2244;
+
+  --star-fg: #e6e8f0;
+  --star-dim: #8b92a8;
+  --star-ghost: #4a526b;
+
+  --cyan-glow: #4dd0ff;
+  --cyan-bright: #80e3ff;
+  --cyan-dust: rgba(77, 208, 255, 0.12);
+
+  --magenta-glow: #ff7ad9;
+  --magenta-bright: #ffa8e8;
+  --magenta-dust: rgba(255, 122, 217, 0.12);
+
+  --amber-pulse: #ffc857;
+  --amber-bright: #ffe19a;
+
+  --grid: rgba(140, 160, 220, 0.04);
+
+  --surface-overlay: rgba(10, 14, 31, 0.78);
+  --surface-overlay-hi: rgba(19, 24, 48, 0.92);
+
+  --shadow-deep: 0 0 60px rgba(0, 0, 0, 0.7);
+  --shadow-glow-cyan: 0 0 24px rgba(77, 208, 255, 0.35);
+  --shadow-glow-magenta: 0 0 24px rgba(255, 122, 217, 0.35);
+
+  /* Typography */
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
   margin: 0;
   padding: 0;
-}
-
-/* ----- Color Variables ----- */
-:root {
-  --theme-color: #3dc373;
-  --theme-color-contrast: #08180e;
-  --textbox-color: #edfef4;
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --theme-color: #4cf490;
-    --theme-color-contrast: #132219;
-    --textbox-color: #0f311d;
-  }
-}
-
-/* ----- Page Setup ----- */
-html,
-body,
-#root {
   height: 100%;
-  margin: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-display);
+  font-weight: 300;
+  background: var(--space-void);
+  color: var(--star-fg);
+  letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family:
-    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
-
-/* ----- Buttons ----- */
 button {
-  padding: 0.5rem 0.75rem;
-  border: none;
-  border-radius: 0.375rem;
-  background-color: var(--theme-color);
-  color: var(--theme-color-contrast);
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-  font-family: monospace;
-}
-
-/* ----- Inputs & Textareas ----- */
-input,
-textarea {
   border: none;
-  border-radius: 0.375rem;
-  caret-color: var(--theme-color);
-  font-family: monospace;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-  padding: 0.5rem 0.75rem;
 }
 
-input:focus,
-textarea:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--theme-color);
+input, textarea {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+a, button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 1px solid var(--cyan-glow);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--cyan-dust);
+  color: var(--cyan-bright);
 }
