@@ -10,9 +10,15 @@ import AddMemoryReducer from "../add_memory_reducer";
 import AddMemoryWithEntitiesReducer from "../add_memory_with_entities_reducer";
 import DeleteMemoryReducer from "../delete_memory_reducer";
 import SetAgentNameReducer from "../set_agent_name_reducer";
+import TagMemoryReducer from "../tag_memory_reducer";
+import UntagMemoryReducer from "../untag_memory_reducer";
+import UpdateMemoryReducer from "../update_memory_reducer";
 
 export type AddMemoryParams = __Infer<typeof AddMemoryReducer>;
 export type AddMemoryWithEntitiesParams = __Infer<typeof AddMemoryWithEntitiesReducer>;
 export type DeleteMemoryParams = __Infer<typeof DeleteMemoryReducer>;
 export type SetAgentNameParams = __Infer<typeof SetAgentNameReducer>;
+export type TagMemoryParams = __Infer<typeof TagMemoryReducer>;
+export type UntagMemoryParams = __Infer<typeof UntagMemoryReducer>;
+export type UpdateMemoryParams = __Infer<typeof UpdateMemoryReducer>;
 

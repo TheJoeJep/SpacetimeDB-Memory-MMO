@@ -38,6 +38,9 @@ import AddMemoryReducer from "./add_memory_reducer";
 import AddMemoryWithEntitiesReducer from "./add_memory_with_entities_reducer";
 import DeleteMemoryReducer from "./delete_memory_reducer";
 import SetAgentNameReducer from "./set_agent_name_reducer";
+import TagMemoryReducer from "./tag_memory_reducer";
+import UntagMemoryReducer from "./untag_memory_reducer";
+import UpdateMemoryReducer from "./update_memory_reducer";
 
 // Import all procedure arg schemas
 
@@ -116,6 +119,9 @@ const reducersSchema = __reducers(
   __reducerSchema("add_memory_with_entities", AddMemoryWithEntitiesReducer),
   __reducerSchema("delete_memory", DeleteMemoryReducer),
   __reducerSchema("set_agent_name", SetAgentNameReducer),
+  __reducerSchema("tag_memory", TagMemoryReducer),
+  __reducerSchema("untag_memory", UntagMemoryReducer),
+  __reducerSchema("update_memory", UpdateMemoryReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

@@ -86,6 +86,54 @@ export const delete_memory = spacetimedb.reducer(
   }
 );
 
+export const update_memory = spacetimedb.reducer(
+  { noteId: t.u64(), content: t.string() },
+  (ctx, { noteId, content }) => {
+    const trimmed = content.trim();
+    if (!trimmed) throw new SenderError('Memory content must not be empty');
+    const existing = ctx.db.memoryNote.id.find(noteId);
+    if (!existing) throw new SenderError('Memory not found');
+    if (!existing.addedBy.isEqual(ctx.sender)) {
+      throw new SenderError("Cannot edit another agent's memory");
+    }
+    ctx.db.memoryNote.id.update({
+      ...existing,
+      content: trimmed,
+      updatedAt: ctx.timestamp,
+    });
+  }
+);
+
+export const tag_memory = spacetimedb.reducer(
+  { noteId: t.u64(), entityName: t.string() },
+  (ctx, { noteId, entityName }) => {
+    const existing = ctx.db.memoryNote.id.find(noteId);
+    if (!existing) throw new SenderError('Memory not found');
+    if (!existing.addedBy.isEqual(ctx.sender)) {
+      throw new SenderError("Cannot tag another agent's memory");
+    }
+    const entityId = findOrCreateEntity(ctx, entityName);
+    const alreadyLinked = [...ctx.db.noteEntity.noteId.filter(noteId)]
+      .some((link: { entityId: bigint }) => link.entityId === entityId);
+    if (alreadyLinked) return;
+    ctx.db.noteEntity.insert({ id: 0n, noteId, entityId });
+  }
+);
+
+export const untag_memory = spacetimedb.reducer(
+  { noteId: t.u64(), entityId: t.u64() },
+  (ctx, { noteId, entityId }) => {
+    const existing = ctx.db.memoryNote.id.find(noteId);
+    if (!existing) throw new SenderError('Memory not found');
+    if (!existing.addedBy.isEqual(ctx.sender)) {
+      throw new SenderError("Cannot untag another agent's memory");
+    }
+    for (const link of [...ctx.db.noteEntity.noteId.filter(noteId)]) {
+      if (link.entityId === entityId) ctx.db.noteEntity.id.delete(link.id);
+    }
+  }
+);
+
 export const init = spacetimedb.init(_ctx => {});
 
 export const onConnect = spacetimedb.clientConnected(ctx => {
