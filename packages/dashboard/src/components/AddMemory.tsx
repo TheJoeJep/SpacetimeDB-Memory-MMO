@@ -14,7 +14,7 @@ export function AddMemory() {
     const trimmed = content.trim();
     if (!trimmed) return;
     const entityNames = parseTags(tagInput);
-    addMemoryWithEntities({ content: trimmed, entityNames });
+    addMemoryWithEntities({ content: trimmed, entityNames, embedding: undefined, clientToken: undefined });
     setContent('');
     setTagInput('');
   };

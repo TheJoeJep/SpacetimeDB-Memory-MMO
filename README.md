@@ -1,95 +1,109 @@
 # SpacetimeDB Memory MMO
 
-Multi-agent compound memory backed by SpacetimeDB. A graph-memory backend +
-MCP server that any AI agent (Claude Code, Cursor, custom) can plug into.
+> Multi-agent compound memory for AI agents, backed by SpacetimeDB.
 
-> **Status:** Plan 1 (graph-memory backend) and Plan 2 (MCP server) complete.
-> Plan 3 (`npx` installer + npm publish) in progress.
+Install into any project folder in one command:
 
-## Packages
+```bash
+npx spacetimedb-memory-mmo init
+```
 
-| Package | Purpose |
+Adds a graph-memory MCP server to Claude Code, Cursor, or any other MCP-compatible
+AI host. Memories are atomic notes with named entity tags + optional vector
+embeddings, stored in a SpacetimeDB module that multiple agents can share live.
+
+## What you get
+
+- 🧠 **Persistent memory** across AI sessions, with entity-graph navigation
+- 🤝 **Multi-agent** — multiple agents on multiple machines share the same memory in real time
+- 🔌 **MCP standard** — works with Claude Code, Cursor, Windsurf, custom agents
+- 💸 **Cost-aware** — Haiku 4.5 for extraction, Voyage for embeddings, content-hash caching
+- 🏠 **Local-first** — runs on your machine by default; optional cloud sync via SpacetimeDB Maincloud
+
+## Install
+
+```bash
+npx spacetimedb-memory-mmo init
+```
+
+The installer asks:
+
+1. **New memory system or connect to existing?**
+2. **Local (private, fast) or Maincloud (free hosted, syncs across devices)?**
+3. **Configure Claude Code, Cursor, both, or skip?**
+4. Anthropic API key (optional, enables auto entity extraction)
+5. Voyage API key (optional, enables vector recall)
+
+After install, talk to your AI agent normally — it now has `memory.remember` and `memory.recall` tools.
+
+## Prerequisites
+
+- Node.js 20+
+- [SpacetimeDB CLI](https://spacetimedb.com/install)
+- For Maincloud: a free SpacetimeDB account (`spacetime login`)
+- For auto-extraction: an [Anthropic API key](https://console.anthropic.com/) (optional)
+- For vector recall: a [Voyage API key](https://dashboard.voyageai.com/) (optional)
+
+## MCP tools exposed
+
+| Tool | What it does |
 |---|---|
-| `spacetimedb-memory-mmo-module` | SpacetimeDB schema + reducers (graph memory storage) |
-| `spacetimedb-memory-mmo-mcp-server` | MCP server bridging AI agents to the SpacetimeDB module |
-| `spacetimedb-memory-mmo-dashboard` | Optional React UI for browsing memories |
+| `memory.remember(content, entities?)` | Save a memory. Auto-extracts entities if Anthropic key configured. |
+| `memory.recall(query, k?, entity?)` | Two-stage retrieval: entity match → vector re-rank. |
+| `memory.forget(noteIds[])` | Delete memories you own. |
+| `memory.list_entities()` | All entities with note counts. |
+| `memory.list_recent(k?)` | Most recent K memories. |
+| `memory.tag(noteId, entity)` / `memory.untag(noteId, entityId)` | Adjust tags. |
 
-## Quick try (local, manual config)
+## Other commands
 
-Prereqs: Node 20+, [`spacetime` CLI](https://spacetimedb.com/install).
+```bash
+npx spacetimedb-memory-mmo doctor   # diagnose installation issues
+npx spacetimedb-memory-mmo reset    # remove local config and start over
+```
+
+## How it works
+
+Inspired by [HippoRAG](https://arxiv.org/abs/2405.14831) (entity graph + PageRank-style retrieval),
+[Graphiti / Zep](https://github.com/getzep/graphiti) (bi-temporal edges — Plan 4),
+and [Mem0](https://mem0.ai/) (extract/update/delete memory operations).
+
+Storage layer is [SpacetimeDB](https://spacetimedb.com) — a reactive relational DB
+with built-in subscriptions. Multiple agents connect to the same module and see
+each other's writes in real time, without needing a separate message bus.
+
+See [docs/superpowers/plans/](./docs/superpowers/plans/) for the implementation roadmap.
+
+## Status
+
+- ✅ **Plan 1** — graph-memory backend
+- ✅ **Plan 2** — MCP server with extraction + embeddings
+- ✅ **Plan 3** — `npx` installer + npm publish
+- 🔜 **Plan 4** — multi-agent ACLs + bi-temporal relations + PageRank retrieval
+- 🔜 **Plan 5** — dashboard polish + scheduled community summarization
+
+## Local development
 
 ```bash
 git clone https://github.com/TheJoeJep/SpacetimeDB-Memory-MMO.git
 cd SpacetimeDB-Memory-MMO
 npm install
-
-# 1. Start SpacetimeDB locally (in its own terminal)
-spacetime start
-
-# 2. Publish the module + generate bindings
-npm run spacetime:publish:local
-npm run spacetime:generate
-
-# 3. Configure (env vars or .env at repo root)
-cat > .env <<EOF
-SPACETIMEDB_HOST=ws://localhost:3000
-SPACETIMEDB_DB_NAME=compound-memory-dev
-ANTHROPIC_API_KEY=sk-ant-...    # optional, enables auto entity extraction
-VOYAGE_API_KEY=pa-...           # optional, enables vector recall
-EOF
-
-# 4. Build the MCP server
-npm run build --workspace spacetimedb-memory-mmo-mcp-server
-
-# 5. Wire into Claude Code by adding to .claude/settings.json:
-#   {
-#     "mcpServers": {
-#       "memory": {
-#         "command": "node",
-#         "args": ["<absolute>/packages/mcp-server/dist/index.js"],
-#         "env": { "DOTENV_CONFIG_PATH": "<absolute>/.env" }
-#       }
-#     }
-#   }
+spacetime start                            # in another terminal
+npm run spacetime:publish:local            # publish module locally
+npm run spacetime:generate                 # generate bindings
+npm run dev --workspace spacetimedb-memory-mmo-dashboard   # browser UI
+npm test                                   # full test suite (dashboard + mcp-server + cli)
 ```
 
-Plan 3 (the `npx` installer) automates steps 3-5.
+## Packages (monorepo)
 
-## Optional: dashboard
-
-```bash
-npm run dev --workspace spacetimedb-memory-mmo-dashboard
-# opens http://localhost:5173 — useful for inspecting what's stored
-```
-
-## MCP tools exposed
-
-- `memory.remember(content, entities?)` — save memory; auto-extracts entities if Anthropic key configured; embeds if Voyage key configured
-- `memory.recall(query, k?, entity?)` — two-stage retrieval (entity match + vector re-rank)
-- `memory.forget(noteIds[])` — delete one or more memories you own
-- `memory.list_entities()` — all entities with note counts
-- `memory.list_recent(k?)` — most recent K memories
-- `memory.tag(noteId, entity)` / `memory.untag(noteId, entityId)` — adjust tags
-
-## Tests
-
-```bash
-npm test
-```
-
-Runs the dashboard suite (5 unit + 1 integration) and the mcp-server suite (5 integration).
-Requires `spacetime start` running and the module published.
-
-## Roadmap
-
-- ✅ **Plan 1** — graph-memory backend
-- ✅ **Plan 2** — MCP server with extraction + embeddings
-- 🚧 **Plan 3** — `npx` installer + npm publish (in progress)
-- 🔜 **Plan 4** — multi-agent ACLs + bi-temporal relations + PageRank retrieval
-- 🔜 **Plan 5** — dashboard polish + scheduled community summarization
-
-See `docs/superpowers/plans/` for full plans.
+| Package | npm | Purpose |
+|---|---|---|
+| `spacetimedb-memory-mmo` | yes | CLI installer (`npx ...`) |
+| `spacetimedb-memory-mmo-mcp-server` | yes | MCP server agents connect to |
+| `spacetimedb-memory-mmo-module` | no | SpacetimeDB schema source (bundled in CLI) |
+| `spacetimedb-memory-mmo-dashboard` | no | Optional React dashboard |
 
 ## License
 
-MIT
+Apache-2.0

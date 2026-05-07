@@ -2,7 +2,7 @@
   "name": "spacetimedb-memory-mmo-mcp-server",
   "version": "0.0.1",
   "description": "MCP server bridging AI agents to a compound-memory SpacetimeDB module",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
