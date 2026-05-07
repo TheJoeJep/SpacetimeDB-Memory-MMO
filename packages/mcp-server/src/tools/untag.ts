@@ -17,9 +17,13 @@ export async function untag(
   conn: Conn,
   args: { noteId: string; entityId: string }
 ): Promise<{ ok: true }> {
+  const noteId = BigInt(args.noteId);
   await (conn.reducers as any).untagMemory({
-    noteId: BigInt(args.noteId),
+    noteId,
     entityId: BigInt(args.entityId),
   });
+  try {
+    await (conn.reducers as any).recordMemoryAccess({ noteIds: [noteId], kind: 'untag' });
+  } catch { /* ignore */ }
   return { ok: true };
 }

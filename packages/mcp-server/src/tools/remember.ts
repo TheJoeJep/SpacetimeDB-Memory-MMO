@@ -53,6 +53,9 @@ export async function remember(
 
   for (const row of (conn.db as any).memoryNote.iter() as Iterable<{ id: bigint; clientToken?: string }>) {
     if (row.clientToken === clientToken) {
+      try {
+        await (conn.reducers as any).recordMemoryAccess({ noteIds: [row.id], kind: 'remember' });
+      } catch { /* ignore */ }
       return {
         noteId: row.id.toString(),
         clientToken,

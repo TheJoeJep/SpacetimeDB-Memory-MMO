@@ -66,5 +66,26 @@ export const embeddingCache = table(
   }
 );
 
-const spacetimedb = schema({ agent, memoryNote, entity, noteEntity, embeddingCache });
+// Tracks which agent accessed which memory and how. Subscribed by the dashboard
+// to drive the live "agent X is reading memory Y" pulse animations.
+// `kind` values: 'remember' | 'recall' | 'list_recent' | 'tag' | 'untag' | 'view'
+export const memoryAccess = table(
+  {
+    name: 'memory_access',
+    public: true,
+    indexes: [
+      { accessor: 'noteId', algorithm: 'btree', columns: ['noteId'] },
+      { accessor: 'agentId', algorithm: 'btree', columns: ['agentId'] },
+    ],
+  },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    noteId: t.u64(),
+    agentId: t.identity(),
+    kind: t.string(),
+    accessedAt: t.timestamp(),
+  }
+);
+
+const spacetimedb = schema({ agent, memoryNote, entity, noteEntity, embeddingCache, memoryAccess });
 export default spacetimedb;

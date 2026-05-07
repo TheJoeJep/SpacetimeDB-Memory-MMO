@@ -81,6 +81,16 @@ export async function recall(
     linksByNote.get(k2)!.push(name);
   }
 
+  // Record access events for the returned notes so the dashboard can light them up
+  const accessedIds = top.map(({ note }) => note.id);
+  if (accessedIds.length > 0) {
+    try {
+      await (conn.reducers as any).recordMemoryAccess({ noteIds: accessedIds, kind: 'recall' });
+    } catch {
+      // Don't fail recall if access logging hits a transient error
+    }
+  }
+
   return {
     notes: top.map(({ note, sim }) => ({
       id: note.id.toString(),

@@ -5,6 +5,8 @@ import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables } from '../module_bindings';
 import { agentColorFromIdentity } from '../lib/agentColor';
 
+const ACCESS_PULSE_DURATION_MS = 3500;
+
 export type GraphNodeKind = 'memory' | 'entity';
 
 export interface GraphNode {
@@ -49,6 +51,22 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
   const graphRef = useRef<any>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const newNodeMs = useRef(new Map<string, number>());
+  // Per-memory live access tracking: noteId -> { agentHex, color, ts }
+  const accessPulses = useRef(new Map<string, { color: string; ts: number; agentHex: string }>());
+
+  // Subscribe to memory_access. New rows trigger a colored pulse on the matching node.
+  const [accessRows] = useTable(tables.memoryAccess, {
+    onInsert: (row) => {
+      const k = `m:${row.noteId.toString()}`;
+      const hex = row.agentId.toHexString();
+      accessPulses.current.set(k, {
+        color: agentColorFromIdentity(hex),
+        ts: Date.now(),
+        agentHex: hex,
+      });
+    },
+  });
+  void accessRows;
 
   const meHex = identity?.toHexString() ?? '';
 
@@ -114,7 +132,7 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
     return { nodes, links: edges };
   }, [notes, entities, links]);
 
-  // Track newly-arrived nodes for pulse animation
+  // Track newly-arrived nodes + live access pulses for animation
   useEffect(() => {
     const now = Date.now();
     for (const n of data.nodes) {
@@ -132,12 +150,19 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
           break;
         }
       }
+      // Also keep ticking while any access pulse is live
+      for (const [, p] of accessPulses.current) {
+        if (t - p.ts < ACCESS_PULSE_DURATION_MS) {
+          anyActive = true;
+          break;
+        }
+      }
       force(x => x + 1);
       if (anyActive) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [data.nodes]);
+  }, [data.nodes, accessRows.length]);
 
   // Configure forces: collision (no overlap), stronger repulsion, longer link distances.
   useEffect(() => {
@@ -201,6 +226,8 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
 
     const newAt = newNodeMs.current.get(n.id);
     const pulseT = newAt ? Math.max(0, 1 - (Date.now() - newAt) / PULSE_DURATION_MS) : 0;
+    const access = accessPulses.current.get(n.id);
+    const accessT = access ? Math.max(0, 1 - (Date.now() - access.ts) / ACCESS_PULSE_DURATION_MS) : 0;
 
     // Color: memory uses author color (or default cyan), entity uses magenta
     const ringColor =
@@ -211,14 +238,32 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
     // Dim factor
     const op = dimmed ? 0.22 : 1;
 
-    // Halo on selected/pulse
+    // Live access halo (in the accessing agent's color) — strongest signal
+    if (accessT > 0 && access) {
+      // Pulsing concentric rings — larger and brighter than the new-node pulse
+      const t = 1 - accessT; // 0..1 as time passes
+      const haloR = r + 12 + 28 * Math.sin(t * Math.PI);
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, haloR, 0, 2 * Math.PI);
+      ctx.fillStyle = withAlpha(access.color, 0.32 * accessT);
+      ctx.fill();
+      // Inner brighter ring
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r + 4 + 8 * accessT, 0, 2 * Math.PI);
+      ctx.lineWidth = 2.5 * accessT;
+      ctx.strokeStyle = withAlpha(access.color, 0.95 * accessT);
+      ctx.stroke();
+    }
+
+    // Halo on selected
     if (isSelected) {
       const haloR = r + 18;
       ctx.beginPath();
       ctx.arc(n.x, n.y, haloR, 0, 2 * Math.PI);
       ctx.fillStyle = withAlpha(ringColor, 0.18);
       ctx.fill();
-    } else if (pulseT > 0) {
+    } else if (pulseT > 0 && accessT === 0) {
+      // Only show "new" pulse when no access pulse is currently overriding it
       const haloR = r + 6 + 18 * pulseT;
       ctx.beginPath();
       ctx.arc(n.x, n.y, haloR, 0, 2 * Math.PI);

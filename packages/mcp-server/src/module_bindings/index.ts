@@ -38,6 +38,7 @@ import AddMemoryReducer from "./add_memory_reducer";
 import AddMemoryWithEntitiesReducer from "./add_memory_with_entities_reducer";
 import CacheEmbeddingReducer from "./cache_embedding_reducer";
 import DeleteMemoryReducer from "./delete_memory_reducer";
+import RecordMemoryAccessReducer from "./record_memory_access_reducer";
 import SetAgentNameReducer from "./set_agent_name_reducer";
 import SetEntityEmbeddingReducer from "./set_entity_embedding_reducer";
 import SetMemoryEmbeddingReducer from "./set_memory_embedding_reducer";
@@ -51,6 +52,7 @@ import UpdateMemoryReducer from "./update_memory_reducer";
 import AgentRow from "./agent_table";
 import EmbeddingCacheRow from "./embedding_cache_table";
 import EntityRow from "./entity_table";
+import MemoryAccessRow from "./memory_access_table";
 import MemoryNoteRow from "./memory_note_table";
 import NoteEntityRow from "./note_entity_table";
 
@@ -95,6 +97,23 @@ const tablesSchema = __schema({
       { name: 'entity_name_key', constraint: 'unique', columns: ['name'] },
     ],
   }, EntityRow),
+  memoryAccess: __table({
+    name: 'memory_access',
+    indexes: [
+      { accessor: 'agentId', name: 'memory_access_agent_id_idx_btree', algorithm: 'btree', columns: [
+        'agentId',
+      ] },
+      { accessor: 'id', name: 'memory_access_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'noteId', name: 'memory_access_note_id_idx_btree', algorithm: 'btree', columns: [
+        'noteId',
+      ] },
+    ],
+    constraints: [
+      { name: 'memory_access_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, MemoryAccessRow),
   memoryNote: __table({
     name: 'memory_note',
     indexes: [
@@ -137,6 +156,7 @@ const reducersSchema = __reducers(
   __reducerSchema("add_memory_with_entities", AddMemoryWithEntitiesReducer),
   __reducerSchema("cache_embedding", CacheEmbeddingReducer),
   __reducerSchema("delete_memory", DeleteMemoryReducer),
+  __reducerSchema("record_memory_access", RecordMemoryAccessReducer),
   __reducerSchema("set_agent_name", SetAgentNameReducer),
   __reducerSchema("set_entity_embedding", SetEntityEmbeddingReducer),
   __reducerSchema("set_memory_embedding", SetMemoryEmbeddingReducer),

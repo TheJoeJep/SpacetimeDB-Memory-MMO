@@ -970,3 +970,60 @@
   color: var(--star-dim);
   margin-left: 0.4rem;
 }
+
+/* ===== Live activity feed ===== */
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-items: flex-end;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  max-width: 320px;
+}
+
+.activity-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.55rem;
+  background: rgba(10, 14, 31, 0.65);
+  border: 1px solid var(--agent-color);
+  border-radius: 999px;
+  color: var(--star-fg);
+  white-space: nowrap;
+  animation: activity-in 0.35s ease-out;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--agent-color) 35%, transparent);
+}
+
+@keyframes activity-in {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.activity-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--agent-color);
+  box-shadow: 0 0 8px var(--agent-color);
+  flex-shrink: 0;
+}
+
+.activity-name {
+  font-weight: 500;
+  color: var(--star-fg);
+}
+
+.activity-kind {
+  color: var(--star-dim);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+}
+
+.activity-target {
+  color: var(--star-ghost);
+  font-size: 0.6rem;
+}

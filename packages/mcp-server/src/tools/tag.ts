@@ -17,6 +17,10 @@ export async function tag(
   conn: Conn,
   args: { noteId: string; entity: string }
 ): Promise<{ ok: true }> {
-  await (conn.reducers as any).tagMemory({ noteId: BigInt(args.noteId), entityName: args.entity });
+  const noteId = BigInt(args.noteId);
+  await (conn.reducers as any).tagMemory({ noteId, entityName: args.entity });
+  try {
+    await (conn.reducers as any).recordMemoryAccess({ noteIds: [noteId], kind: 'tag' });
+  } catch { /* ignore */ }
   return { ok: true };
 }

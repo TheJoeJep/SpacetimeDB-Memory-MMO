@@ -34,6 +34,15 @@ export const Entity = __t.object("Entity", {
 });
 export type Entity = __Infer<typeof Entity>;
 
+export const MemoryAccess = __t.object("MemoryAccess", {
+  id: __t.u64(),
+  noteId: __t.u64(),
+  agentId: __t.identity(),
+  kind: __t.string(),
+  accessedAt: __t.timestamp(),
+});
+export type MemoryAccess = __Infer<typeof MemoryAccess>;
+
 export const MemoryNote = __t.object("MemoryNote", {
   id: __t.u64(),
   content: __t.string(),

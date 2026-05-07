@@ -23,8 +23,17 @@ export async function listRecent(
   notes.sort((a, b) =>
     Number(b.createdAt.microsSinceUnixEpoch - a.createdAt.microsSinceUnixEpoch)
   );
+  const top = notes.slice(0, k);
+  const accessedIds = top.map(n => n.id);
+  if (accessedIds.length > 0) {
+    try {
+      await (conn.reducers as any).recordMemoryAccess({ noteIds: accessedIds, kind: 'list_recent' });
+    } catch {
+      // ignore
+    }
+  }
   return {
-    notes: notes.slice(0, k).map(n => ({
+    notes: top.map(n => ({
       id: n.id.toString(),
       content: n.content,
       createdAt: new Date(Number(n.createdAt.microsSinceUnixEpoch / 1000n)).toISOString(),

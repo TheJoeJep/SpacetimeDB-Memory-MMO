@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useSpacetimeDB, useTable, useReducer } from 'spacetimedb/react';
 import { tables, reducers } from '../module_bindings';
@@ -9,12 +9,41 @@ interface Props {
   entityCount: number;
 }
 
+const ACTIVITY_TTL_MS = 8000;
+interface ActivityItem { agentHex: string; color: string; kind: string; noteId: string; ts: number; }
+
 export function TopBar({ noteCount, entityCount }: Props) {
   const { identity } = useSpacetimeDB();
   const setAgentName = useReducer(reducers.setAgentName);
   const [agents] = useTable(tables.agent);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+
+  // Live activity feed — last few access events from any agent
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  useTable(tables.memoryAccess, {
+    onInsert: row => {
+      const hex = row.agentId.toHexString();
+      const item: ActivityItem = {
+        agentHex: hex,
+        color: agentColorFromIdentity(hex),
+        kind: row.kind,
+        noteId: row.noteId.toString(),
+        ts: Date.now(),
+      };
+      setActivity(prev => [item, ...prev].slice(0, 6));
+    },
+  });
+
+  // Drop expired activity items
+  useEffect(() => {
+    if (activity.length === 0) return;
+    const t = setInterval(() => {
+      const now = Date.now();
+      setActivity(prev => prev.filter(a => now - a.ts < ACTIVITY_TTL_MS));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [activity.length]);
 
   const meHex = identity?.toHexString() ?? '';
   const me = identity ? agents.find(a => a.identity.isEqual(identity)) : undefined;
@@ -49,6 +78,23 @@ export function TopBar({ noteCount, entityCount }: Props) {
       </div>
 
       <div className="top-meta">
+        {activity.length > 0 && (
+          <div className="activity-feed" aria-label="recent activity">
+            {activity.slice(0, 3).map((a, i) => {
+              const agent = agents.find(x => x.identity.toHexString() === a.agentHex);
+              const name = agent?.name || a.agentHex.substring(0, 6);
+              return (
+                <div key={`${a.ts}-${i}`} className="activity-item" style={{ '--agent-color': a.color } as React.CSSProperties}>
+                  <span className="activity-dot" />
+                  <span className="activity-name">{name}</span>
+                  <span className="activity-kind">{kindLabel(a.kind)}</span>
+                  <span className="activity-target">#{a.noteId}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <div className="stats-badge">
           <span><span className="num">{noteCount}</span>memories</span>
           <span><span className="num">{entityCount}</span>entities</span>
@@ -99,4 +145,16 @@ export function TopBar({ noteCount, entityCount }: Props) {
       </div>
     </header>
   );
+}
+
+function kindLabel(kind: string): string {
+  switch (kind) {
+    case 'remember':    return 'wrote';
+    case 'recall':      return 'recalled';
+    case 'list_recent': return 'browsed';
+    case 'tag':         return 'tagged';
+    case 'untag':       return 'untagged';
+    case 'view':        return 'viewed';
+    default:            return kind;
+  }
 }
