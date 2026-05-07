@@ -76,3 +76,43 @@
   background: #225;
   color: #fff;
 }
+
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.entity-sidebar {
+  border-right: 1px solid #eee;
+  padding-right: 1rem;
+}
+
+.entity-sidebar ul { list-style: none; padding: 0; }
+
+.entity-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.entity-row:hover { background: #f5f5f5; }
+.entity-row.active { background: #225; color: #fff; }
+
+.entity-count { color: #888; font-size: 0.8rem; }
+.entity-row.active .entity-count { color: #ccd; }
+
+.entity-empty { color: #999; padding: 0.5rem; }
+
+@media (max-width: 700px) {
+  .layout { grid-template-columns: 1fr; }
+  .entity-sidebar { border-right: none; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
+}
