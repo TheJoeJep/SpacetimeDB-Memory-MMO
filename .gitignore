@@ -10,3 +10,4 @@ spacetime.local.json
 .vite/
 spacetimedb/dist/
 spacetimedb/node_modules/
+*.tgz

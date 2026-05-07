@@ -1,4 +1,4 @@
-import spacetimedb, { agent, memoryNote, entity, noteEntity, embeddingCache } from './schema';
+import spacetimedb, { agent, memoryNote, entity, noteEntity, embeddingCache, memoryAccess } from './schema';
 import { t, SenderError } from 'spacetimedb/server';
 
 void agent;
@@ -6,6 +6,7 @@ void memoryNote;
 void entity;
 void noteEntity;
 void embeddingCache;
+void memoryAccess;
 
 function findOrCreateEntity(ctx: any, rawName: string): bigint {
   const name = rawName.trim().toLowerCase();
@@ -105,10 +106,24 @@ export const delete_memory = spacetimedb.reducer(
     if (!existing.addedBy.isEqual(ctx.sender)) {
       throw new SenderError("Cannot delete another agent's memory");
     }
+    // Collect entity ids from this note's links so we can check for orphans after.
+    const touchedEntityIds = new Set<bigint>();
     for (const link of [...ctx.db.noteEntity.noteId.filter(noteId)]) {
+      touchedEntityIds.add(link.entityId);
       ctx.db.noteEntity.id.delete(link.id);
     }
     ctx.db.memoryNote.id.delete(noteId);
+    // Also delete any access events for this note (best-effort cleanup).
+    for (const access of [...ctx.db.memoryAccess.noteId.filter(noteId)]) {
+      ctx.db.memoryAccess.id.delete(access.id);
+    }
+    // Drop entities that no longer have any linked notes (orphans).
+    for (const entityId of touchedEntityIds) {
+      const stillLinked = [...ctx.db.noteEntity.entityId.filter(entityId)].length > 0;
+      if (!stillLinked) {
+        ctx.db.entity.id.delete(entityId);
+      }
+    }
   }
 );
 
@@ -160,6 +175,25 @@ export const set_entity_embedding = spacetimedb.reducer(
     const existing = ctx.db.entity.id.find(entityId);
     if (!existing) throw new SenderError('Entity not found');
     ctx.db.entity.id.update({ ...existing, embedding });
+  }
+);
+
+export const record_memory_access = spacetimedb.reducer(
+  { noteIds: t.array(t.u64()), kind: t.string() },
+  (ctx, { noteIds, kind }) => {
+    if (!kind.trim()) throw new SenderError('access kind required');
+    for (const noteId of noteIds) {
+      // skip silently if the note vanished
+      const exists = ctx.db.memoryNote.id.find(noteId);
+      if (!exists) continue;
+      ctx.db.memoryAccess.insert({
+        id: 0n,
+        noteId,
+        agentId: ctx.sender,
+        kind: kind.toLowerCase(),
+        accessedAt: ctx.timestamp,
+      });
+    }
   }
 );
 
