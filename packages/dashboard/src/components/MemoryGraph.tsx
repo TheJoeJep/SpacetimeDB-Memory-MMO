@@ -212,13 +212,19 @@ export function MemoryGraph({ onSelect, selectedId }: Props) {
     ctx.fillText(fullLabel, n.x, n.y + r + 6);
   };
 
-  // Auto fit-to-screen on data change (settle, then zoom)
+  // Auto fit-to-screen on data change (settle, then zoom).
+  // Clamp max zoom so a sparse graph doesn't end up looking like 2 giant balls.
   useEffect(() => {
     if (!graphRef.current) return;
     if (data.nodes.length === 0) return;
     const t = setTimeout(() => {
       try {
-        graphRef.current?.zoomToFit?.(600, 80);
+        graphRef.current?.zoomToFit?.(600, 100);
+        // Clamp zoom AFTER fit so few-node graphs don't max out
+        const z = graphRef.current?.zoom?.();
+        if (typeof z === 'number' && z > 2.5) {
+          graphRef.current?.zoom?.(2.5, 400);
+        }
       } catch {
         /* graph not ready yet */
       }
