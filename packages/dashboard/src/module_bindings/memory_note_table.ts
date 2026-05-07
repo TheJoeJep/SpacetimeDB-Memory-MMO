@@ -16,4 +16,6 @@ export default __t.row({
   addedBy: __t.identity().name("added_by"),
   createdAt: __t.timestamp().name("created_at"),
   updatedAt: __t.timestamp().name("updated_at"),
+  embedding: __t.option(__t.array(__t.f32())),
+  clientToken: __t.option(__t.string()).name("client_token"),
 });

@@ -1,14 +1,12 @@
-import spacetimedb, { agent, memoryNote, entity, noteEntity } from './schema';
+import spacetimedb, { agent, memoryNote, entity, noteEntity, embeddingCache } from './schema';
 import { t, SenderError } from 'spacetimedb/server';
 
 void agent;
 void memoryNote;
 void entity;
 void noteEntity;
+void embeddingCache;
 
-// Helper used by add_memory_with_entities and tag_memory.
-// `ctx` is typed loosely as `any` because SpacetimeDB does not export a public
-// ReducerContext type; the helper only touches `ctx.db.entity` and `ctx.timestamp`.
 function findOrCreateEntity(ctx: any, rawName: string): bigint {
   const name = rawName.trim().toLowerCase();
   if (!name) throw new SenderError('Entity name must not be empty');
@@ -19,6 +17,7 @@ function findOrCreateEntity(ctx: any, rawName: string): bigint {
     name,
     kind: undefined,
     createdAt: ctx.timestamp,
+    embedding: undefined,
   });
   return created.id;
 }
@@ -44,13 +43,20 @@ export const add_memory = spacetimedb.reducer(
       addedBy: ctx.sender,
       createdAt: ctx.timestamp,
       updatedAt: ctx.timestamp,
+      embedding: undefined,
+      clientToken: undefined,
     });
   }
 );
 
 export const add_memory_with_entities = spacetimedb.reducer(
-  { content: t.string(), entityNames: t.array(t.string()) },
-  (ctx, { content, entityNames }) => {
+  {
+    content: t.string(),
+    entityNames: t.array(t.string()),
+    embedding: t.array(t.f32()).optional(),
+    clientToken: t.string().optional(),
+  },
+  (ctx, { content, entityNames, embedding, clientToken }) => {
     const trimmed = content.trim();
     if (!trimmed) throw new SenderError('Memory content must not be empty');
     const note = ctx.db.memoryNote.insert({
@@ -59,6 +65,8 @@ export const add_memory_with_entities = spacetimedb.reducer(
       addedBy: ctx.sender,
       createdAt: ctx.timestamp,
       updatedAt: ctx.timestamp,
+      embedding,
+      clientToken,
     });
     const seen = new Set<string>();
     for (const raw of entityNames) {
@@ -68,21 +76,6 @@ export const add_memory_with_entities = spacetimedb.reducer(
       const entityId = findOrCreateEntity(ctx, norm);
       ctx.db.noteEntity.insert({ id: 0n, noteId: note.id, entityId });
     }
-  }
-);
-
-export const delete_memory = spacetimedb.reducer(
-  { noteId: t.u64() },
-  (ctx, { noteId }) => {
-    const existing = ctx.db.memoryNote.id.find(noteId);
-    if (!existing) throw new SenderError('Memory not found');
-    if (!existing.addedBy.isEqual(ctx.sender)) {
-      throw new SenderError("Cannot delete another agent's memory");
-    }
-    for (const link of [...ctx.db.noteEntity.noteId.filter(noteId)]) {
-      ctx.db.noteEntity.id.delete(link.id);
-    }
-    ctx.db.memoryNote.id.delete(noteId);
   }
 );
 
@@ -101,6 +94,21 @@ export const update_memory = spacetimedb.reducer(
       content: trimmed,
       updatedAt: ctx.timestamp,
     });
+  }
+);
+
+export const delete_memory = spacetimedb.reducer(
+  { noteId: t.u64() },
+  (ctx, { noteId }) => {
+    const existing = ctx.db.memoryNote.id.find(noteId);
+    if (!existing) throw new SenderError('Memory not found');
+    if (!existing.addedBy.isEqual(ctx.sender)) {
+      throw new SenderError("Cannot delete another agent's memory");
+    }
+    for (const link of [...ctx.db.noteEntity.noteId.filter(noteId)]) {
+      ctx.db.noteEntity.id.delete(link.id);
+    }
+    ctx.db.memoryNote.id.delete(noteId);
   }
 );
 
@@ -131,6 +139,41 @@ export const untag_memory = spacetimedb.reducer(
     for (const link of [...ctx.db.noteEntity.noteId.filter(noteId)]) {
       if (link.entityId === entityId) ctx.db.noteEntity.id.delete(link.id);
     }
+  }
+);
+
+export const set_memory_embedding = spacetimedb.reducer(
+  { noteId: t.u64(), embedding: t.array(t.f32()) },
+  (ctx, { noteId, embedding }) => {
+    const existing = ctx.db.memoryNote.id.find(noteId);
+    if (!existing) throw new SenderError('Memory not found');
+    if (!existing.addedBy.isEqual(ctx.sender)) {
+      throw new SenderError("Cannot embed another agent's memory");
+    }
+    ctx.db.memoryNote.id.update({ ...existing, embedding, updatedAt: ctx.timestamp });
+  }
+);
+
+export const set_entity_embedding = spacetimedb.reducer(
+  { entityId: t.u64(), embedding: t.array(t.f32()) },
+  (ctx, { entityId, embedding }) => {
+    const existing = ctx.db.entity.id.find(entityId);
+    if (!existing) throw new SenderError('Entity not found');
+    ctx.db.entity.id.update({ ...existing, embedding });
+  }
+);
+
+export const cache_embedding = spacetimedb.reducer(
+  { contentHash: t.string(), embedding: t.array(t.f32()), model: t.string() },
+  (ctx, { contentHash, embedding, model }) => {
+    const existing = ctx.db.embeddingCache.contentHash.find(contentHash);
+    if (existing) return;
+    ctx.db.embeddingCache.insert({
+      contentHash,
+      embedding,
+      model,
+      createdAt: ctx.timestamp,
+    });
   }
 );
 

@@ -36,8 +36,11 @@ import {
 // Import all reducer arg schemas
 import AddMemoryReducer from "./add_memory_reducer";
 import AddMemoryWithEntitiesReducer from "./add_memory_with_entities_reducer";
+import CacheEmbeddingReducer from "./cache_embedding_reducer";
 import DeleteMemoryReducer from "./delete_memory_reducer";
 import SetAgentNameReducer from "./set_agent_name_reducer";
+import SetEntityEmbeddingReducer from "./set_entity_embedding_reducer";
+import SetMemoryEmbeddingReducer from "./set_memory_embedding_reducer";
 import TagMemoryReducer from "./tag_memory_reducer";
 import UntagMemoryReducer from "./untag_memory_reducer";
 import UpdateMemoryReducer from "./update_memory_reducer";
@@ -46,6 +49,7 @@ import UpdateMemoryReducer from "./update_memory_reducer";
 
 // Import all table schema definitions
 import AgentRow from "./agent_table";
+import EmbeddingCacheRow from "./embedding_cache_table";
 import EntityRow from "./entity_table";
 import MemoryNoteRow from "./memory_note_table";
 import NoteEntityRow from "./note_entity_table";
@@ -65,6 +69,17 @@ const tablesSchema = __schema({
       { name: 'agent_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, AgentRow),
+  embeddingCache: __table({
+    name: 'embedding_cache',
+    indexes: [
+      { accessor: 'contentHash', name: 'embedding_cache_content_hash_idx_btree', algorithm: 'btree', columns: [
+        'contentHash',
+      ] },
+    ],
+    constraints: [
+      { name: 'embedding_cache_content_hash_key', constraint: 'unique', columns: ['contentHash'] },
+    ],
+  }, EmbeddingCacheRow),
   entity: __table({
     name: 'entity',
     indexes: [
@@ -85,6 +100,9 @@ const tablesSchema = __schema({
     indexes: [
       { accessor: 'addedBy', name: 'memory_note_added_by_idx_btree', algorithm: 'btree', columns: [
         'addedBy',
+      ] },
+      { accessor: 'clientToken', name: 'memory_note_client_token_idx_btree', algorithm: 'btree', columns: [
+        'clientToken',
       ] },
       { accessor: 'id', name: 'memory_note_id_idx_btree', algorithm: 'btree', columns: [
         'id',
@@ -117,8 +135,11 @@ const tablesSchema = __schema({
 const reducersSchema = __reducers(
   __reducerSchema("add_memory", AddMemoryReducer),
   __reducerSchema("add_memory_with_entities", AddMemoryWithEntitiesReducer),
+  __reducerSchema("cache_embedding", CacheEmbeddingReducer),
   __reducerSchema("delete_memory", DeleteMemoryReducer),
   __reducerSchema("set_agent_name", SetAgentNameReducer),
+  __reducerSchema("set_entity_embedding", SetEntityEmbeddingReducer),
+  __reducerSchema("set_memory_embedding", SetMemoryEmbeddingReducer),
   __reducerSchema("tag_memory", TagMemoryReducer),
   __reducerSchema("untag_memory", UntagMemoryReducer),
   __reducerSchema("update_memory", UpdateMemoryReducer),

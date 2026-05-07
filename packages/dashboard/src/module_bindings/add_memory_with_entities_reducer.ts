@@ -13,4 +13,6 @@ import {
 export default {
   content: __t.string(),
   entityNames: __t.array(__t.string()),
+  embedding: __t.option(__t.array(__t.f32())),
+  clientToken: __t.option(__t.string()),
 };

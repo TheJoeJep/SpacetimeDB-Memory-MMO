@@ -11,9 +11,8 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  id: __t.u64().primaryKey(),
-  name: __t.string(),
-  kind: __t.option(__t.string()),
+  contentHash: __t.string().primaryKey().name("content_hash"),
+  embedding: __t.array(__t.f32()),
+  model: __t.string(),
   createdAt: __t.timestamp().name("created_at"),
-  embedding: __t.option(__t.array(__t.f32())),
 });

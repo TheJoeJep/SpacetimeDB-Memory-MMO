@@ -10,10 +10,7 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default __t.row({
-  id: __t.u64().primaryKey(),
-  name: __t.string(),
-  kind: __t.option(__t.string()),
-  createdAt: __t.timestamp().name("created_at"),
-  embedding: __t.option(__t.array(__t.f32())),
-});
+export default {
+  entityId: __t.u64(),
+  embedding: __t.array(__t.f32()),
+};

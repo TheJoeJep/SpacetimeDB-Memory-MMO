@@ -17,11 +17,20 @@ export const Agent = __t.object("Agent", {
 });
 export type Agent = __Infer<typeof Agent>;
 
+export const EmbeddingCache = __t.object("EmbeddingCache", {
+  contentHash: __t.string(),
+  embedding: __t.array(__t.f32()),
+  model: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type EmbeddingCache = __Infer<typeof EmbeddingCache>;
+
 export const Entity = __t.object("Entity", {
   id: __t.u64(),
   name: __t.string(),
   kind: __t.option(__t.string()),
   createdAt: __t.timestamp(),
+  embedding: __t.option(__t.array(__t.f32())),
 });
 export type Entity = __Infer<typeof Entity>;
 
@@ -31,6 +40,8 @@ export const MemoryNote = __t.object("MemoryNote", {
   addedBy: __t.identity(),
   createdAt: __t.timestamp(),
   updatedAt: __t.timestamp(),
+  embedding: __t.option(__t.array(__t.f32())),
+  clientToken: __t.option(__t.string()),
 });
 export type MemoryNote = __Infer<typeof MemoryNote>;
 
